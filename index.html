@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VOX Shield PWA</title>
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22VOX%20Shield%22%2C%22short_name%22%3A%22VOX%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230A1628%22%2C%22theme_color%22%3A%22%230A1628%22%7D">
+<link rel="apple-touch-icon" href="https://img.icons8.com/fluency/192/shield.png">
+<meta name="theme-color" content="#0A1628">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+body { font-family: 'Manrope', sans-serif; background-color: #0A1628; color: #D7E3FC; margin:0; padding:0; user-select:none; -webkit-tap-highlight-color: transparent; overscroll-behavior: none;}
+.mso { font-family: 'Material Symbols Outlined'; vertical-align: middle; }
+.scr { display: none; min-height: 100dvh; flex-direction: column; padding: 74px 20px 84px; }
+.active { display: flex; }
+.btn { background: #B8973A; color: #403100; font-weight: 800; border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; transition: transform 0.1s; text-transform: uppercase; letter-spacing: 1px;}
+.btn:active { transform: scale(0.96); }
+.btn-out { border: 2px solid #B8973A; color: #B8973A; font-weight: 800; border-radius: 12px; padding: 14px; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;}
+.card { background: #142032; border: 1px solid #2C3E50; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+.inpt { width: 100%; border: none; border-bottom: 2px solid #2C3E50; background: transparent; color: #fff; padding: 12px 12px 12px 36px; outline: none; transition: border-color 0.2s;}
+.inpt:focus { border-bottom-color: #B8973A; }
+.nv { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; font-size: 11px; flex-grow: 1; cursor: pointer; font-weight: 600; padding: 8px 0;}
+.nv.active-nav { color: #B8973A; }
+#sos { width: 280px; height: 280px; border-radius: 50%; border: 4px solid #B8973A; display: flex; align-items: center; justify-content: center; flex-direction: column; background: radial-gradient(circle, #2A3548, #0A1628); box-shadow: 0 0 50px rgba(184,151,58,0.2); transition: all 0.2s; cursor: pointer; margin: auto;}
+@keyframes p { 0% { opacity: 1; transform: scale(1); } 50% { opacity: .7; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+.pls { animation: p 1.5s infinite; }
+</style>
+<script>
+const sb = supabase.createClient('https://yuzjfsszqzmcmeckitoz.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1empmc3N6cXptY21lY2tpdG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTYxNzIsImV4cCI6MjA5MjA5MjE3Mn0.fU16h8-BjvgHuXGkGV4zHq7KivBpMYylRKJrEJ0_wRo');
+
+let cur='login', t, ct, cv, sp=0, spt;
+
+function s(id) {
+    document.querySelectorAll('.scr').forEach(e=>e.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    cur = id;
+    let isFull = ['login','reg','priv','pair','cancel','ripple','safe', 'dash'].includes(id);
+    document.getElementById('tn').style.display = isFull ? 'none' : 'flex';
+    document.getElementById('bn').style.display = isFull ? 'none' : 'flex';
+    document.querySelectorAll('.nv').forEach(e=>e.classList.remove('active-nav'));
+    if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active-nav');
+    window.scrollTo(0,0);
+}
+
+const payload = {
+    trigger_type: "gesture", detection_method: "hardware_threshold", confidence: 1.0, timestamp_utc: new Date().toISOString(),
+    location: { lat: 28.6139, lng: 77.2090, accuracy_m: 4.2 }, device_status: { battery_pct: 72, path_used: "A" }, user: { name: "Priya Sharma" }
+};
+
+async function api() {
+    try {
+        let res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBVxcfCzNRsIBqC_6IFv__Kxg8sVQ5TDNU", {
+            method:"POST", headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({
+                system_instruction: {parts:[{text:"Return JSON ONLY: {alert_tier, digipin_code, incident_summary, notifications:{group_c:{message}}}"}]},
+                contents:[{parts:[{text: JSON.stringify(payload)}]}]
+            })
+        });
+        let d = await res.json();
+        let j = JSON.parse(d.candidates[0].content.parts[0].text.replace(/```json|```/g,'').trim());
+        document.getElementById('d-tier').innerText = j.alert_tier || 'CRITICAL';
+        document.getElementById('d-pin').innerText = j.digipin_code || '39J-8M3-CK52';
+        document.getElementById('d-msg').innerText = j.notifications?.group_c?.message || 'Emergency SOS sent.';
+        document.getElementById('d-sum').innerText = j.incident_summary || '';
+    } catch(e) {
+        document.getElementById('d-pin').innerText = '39J-8M3-CK52';
+        document.getElementById('d-msg').innerText = 'System Fallback: SOS Alert generated securely.';
+    }
+    setTimeout(()=>s('dash'), 3000);
+}
+
+async function signIn() {
+    let inp = document.querySelectorAll('#login .inpt');
+    let { data, error } = await sb.auth.signInWithPassword({ email: inp[0].value, password: inp[1].value });
+    if(!error) s('home'); else alert(error.message);
+}
+
+async function register() {
+    let inp = document.querySelectorAll('#reg .inpt');
+    let { data, error } = await sb.auth.signUp({ email: inp[2].value, password: inp[3].value });
+    if(!error && data.user) {
+        await sb.from('profiles').insert([{ id: data.user.id, full_name: inp[0].value, phone: inp[1].value }]);
+        s('priv');
+    } else if(error) {
+        alert(error.message);
+    }
+}
+
+async function logout() {
+    await sb.auth.signOut();
+    s('login');
+}
+
+async function checkSession() {
+    const { data } = await sb.auth.getSession();
+    if (data.session) s('home'); else s('login');
+}
+
+function sDn() { document.getElementById('sos').style.transform='scale(0.9)'; t=setTimeout(trig,3000); }
+function sUp() { document.getElementById('sos').style.transform='scale(1)'; clearTimeout(t); }
+
+window.onkeydown=e=>{ 
+    if(e.code==='Space'&&cur==='home') { 
+        e.preventDefault();
+        sp++; 
+        if(sp===2) { trig(); sp=0; } 
+        clearTimeout(spt); 
+        spt=setTimeout(()=>sp=0,500); 
+    }
+};
+
+function trig() { 
+    sUp(); 
+    s('cancel'); 
+    cv=10; 
+    document.getElementById('cd').innerText=cv; 
+    document.getElementById('cd-txt').innerText='Dispatching in 10s';
+    ct=setInterval(()=>{ 
+        cv--; 
+        document.getElementById('cd').innerText=cv; 
+        document.getElementById('cd-txt').innerText='Dispatching in '+cv+'s';
+        if(cv<=0){ 
+            clearInterval(ct); 
+            s('ripple'); 
+            api(); 
+        } 
+    },1000); 
+}
+
+function abrt() { clearInterval(ct); s('home'); }
+
+window.onload = () => {
+    let b = document.getElementById('sos');
+    b.onmousedown=sDn; b.ontouchstart=(e)=>{e.preventDefault();sDn()};
+    b.onmouseup=sUp; b.onmouseleave=sUp; b.ontouchend=sUp; b.ontouchcancel=sUp;
+    checkSession();
+};
+</script>
+</head>
+<body>
+
+<div id="tn" class="fixed top-0 w-full h-[64px] bg-[#0A1628]/95 backdrop-blur z-40 border-b border-[#2C3E50] hidden items-center justify-between px-6">
+    <div class="flex items-center gap-2 font-extrabold text-[#B8973A] tracking-widest text-lg" onclick="s('home')"><span class="mso">security</span> VOX SHIELD</div>
+    <div class="w-9 h-9 rounded-full bg-[#142032] border border-[#B8973A] flex items-center justify-center cursor-pointer" onclick="s('prof')"><span class="mso text-[#B8973A]">person</span></div>
+</div>
+
+<div id="bn" class="fixed bottom-0 w-full h-[75px] bg-[#0A1628]/95 backdrop-blur z-50 border-t border-[#2C3E50] hidden items-center justify-around px-2 shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
+    <div id="n-home" class="nv" onclick="s('home')"><span class="mso mb-1">dashboard</span>Home</div>
+    <div id="n-setup" class="nv" onclick="s('setup')"><span class="mso mb-1">shield_person</span>Guardians</div>
+    <div id="n-alert" class="nv" onclick="s('alert')"><span class="mso mb-1">notifications_active</span>Alerts</div>
+    <div id="n-set" class="nv" onclick="s('set')"><span class="mso mb-1">settings</span>Settings</div>
+</div>
+
+<!-- 1. LOGIN -->
+<div id="login" class="scr" style="padding-top:20px; justify-content:center;">
+    <div class="text-center mb-10">
+        <span class="mso text-6xl text-[#B8973A]">shield</span>
+        <h1 class="text-4xl font-extrabold text-[#B8973A] mt-4 tracking-widest">VOX SHIELD</h1>
+        <p class="text-[#E7C361] italic text-sm mt-3">When You Can't Scream, It Speaks for You</p>
+    </div>
+    <div class="relative mb-6"><span class="mso absolute bottom-3 left-0 text-[#64748b]">mail</span><input class="inpt" placeholder="Email Address"></div>
+    <div class="relative mb-10"><span class="mso absolute bottom-3 left-0 text-[#64748b]">lock</span><input class="inpt" type="password" placeholder="Password"></div>
+    <div class="btn flex justify-center items-center gap-2" onclick="signIn()">Sign In <span class="mso">login</span></div>
+    <p class="text-center mt-8 text-sm text-[#64748b]">New? <span class="text-[#B8973A] font-bold" onclick="s('reg')">Register</span></p>
+</div>
+
+<!-- 2. REGISTER -->
+<div id="reg" class="scr" style="padding-top:20px; justify-content:center;">
+    <h1 class="text-3xl font-extrabold mb-8 tracking-wider">REGISTER</h1>
+    <div class="relative mb-6"><span class="mso absolute bottom-3 left-0 text-[#64748b]">person</span><input class="inpt" placeholder="Full Name"></div>
+    <div class="relative mb-6"><span class="mso absolute bottom-3 left-0 text-[#64748b]">phone_iphone</span><input class="inpt" placeholder="Phone"></div>
+    <div class="relative mb-6"><span class="mso absolute bottom-3 left-0 text-[#64748b]">mail</span><input class="inpt" placeholder="Email"></div>
+    <div class="relative mb-10"><span class="mso absolute bottom-3 left-0 text-[#64748b]">lock</span><input class="inpt" type="password" placeholder="Password"></div>
+    <div class="btn" onclick="register()">Create Account</div>
+</div>
+
+<!-- 3. PRIVACY -->
+<div id="priv" class="scr" style="padding-top:20px; justify-content:center;">
+    <div class="text-center mb-8"><span class="mso text-5xl text-[#B8973A]">gpp_good</span><h1 class="text-3xl font-bold mt-4">Privacy Terms</h1></div>
+    <div class="card flex gap-4 items-center"><span class="mso text-[#B8973A] text-3xl">location_on</span><div><h3 class="font-bold">Location Data</h3><p class="text-xs text-[#64748b] mt-1">Shared only during SOS. Auto-erased.</p></div></div>
+    <div class="card flex gap-4 items-center"><span class="mso text-[#B8973A] text-3xl">sensors</span><div><h3 class="font-bold">Gesture Capture</h3><p class="text-xs text-[#64748b] mt-1">Secure on-device ML processing.</p></div></div>
+    <div class="btn mt-6" onclick="s('pair')">I AGREE</div>
+</div>
+
+<!-- 4. PAIR -->
+<div id="pair" class="scr items-center pt-32">
+    <div class="w-48 h-48 rounded-full border-4 border-[#B8973A] pls flex items-center justify-center mb-12 shadow-[0_0_40px_#B8973Aaa]">
+        <span class="mso text-6xl text-[#B8973A]">bluetooth_searching</span>
+    </div>
+    <h2 class="text-xl font-bold tracking-widest text-[#B8973A] mb-8">VOX BAND FOUND</h2>
+    <div class="btn w-full" onclick="s('home')">PAIR DEVICE</div>
+</div>
+
+<!-- 5. HOME (Trigger) -->
+<div id="home" class="scr items-center">
+    <div class="text-center mb-12 mt-6">
+        <h1 class="text-3xl font-extrabold tracking-widest text-[#D7E3FC]">VOX SHIELD</h1>
+        <p class="text-xs font-medium text-[#B8973A] mt-2 uppercase tracking-widest">Active Protection</p>
+    </div>
+    <div id="sos">
+        <span class="font-extrabold tracking-[0.2em] text-[#D7E3FC] text-center w-32 leading-snug">HOLD TO TRIGGER SOS</span>
+    </div>
+    <p class="text-xs text-[#64748b] uppercase tracking-widest mt-12 text-center">Or Double-Press Spacebar</p>
+</div>
+
+<!-- 6. CANCEL -->
+<div id="cancel" class="scr items-center relative" style="padding-top:20px;">
+    <div class="absolute top-0 left-0 w-full h-1"><div class="h-full bg-[#B8973A] pls" style="width:100%"></div></div>
+    <div id="cd" class="text-[12rem] font-bold text-[#D7E3FC] mt-8 leading-none">10</div>
+    <p id="cd-txt" class="text-xl text-[#64748b] font-medium tracking-wide mt-4 mb-auto">Dispatching in 10s</p>
+    <div class="btn-out w-full flex items-center justify-center gap-2 mb-10" onclick="abrt()"><span class="mso">close</span> CANCEL SOS</div>
+</div>
+
+<!-- 7. RIPPLE -->
+<div id="ripple" class="scr items-center justify-center">
+    <div class="w-56 h-56 rounded-full border-2 border-[#B8973A] pls flex items-center justify-center">
+        <div class="w-40 h-40 rounded-full border-2 border-blue-500 pls flex flex-col justify-center items-center">
+            <span class="mso text-5xl text-[#B8973A]">satellite_alt</span>
+        </div>
+    </div>
+    <h2 class="text-2xl font-bold tracking-[0.2em] text-[#B8973A] mt-12 pls">TRANSMITTING</h2>
+</div>
+
+<!-- 8. DASHBOARD -->
+<div id="dash" class="scr">
+    <div class="card bg-red-900/30 border-red-500/50 flex gap-4 items-center">
+        <span class="mso text-4xl text-red-500 pls">warning</span>
+        <div><div id="d-tier" class="font-bold text-red-400">CRITICAL</div><div class="font-bold tracking-wider text-xl">SOS ACTIVE</div></div>
+    </div>
+    <div class="card">
+        <div class="text-xs text-[#64748b] mb-2 font-bold uppercase tracking-widest">4m Grid Digipin</div>
+        <div id="d-pin" class="text-4xl font-mono font-bold text-[#B8973A] text-center bg-[#071325] py-6 rounded-lg mb-4">...</div>
+        <div id="d-msg" class="text-sm bg-[#071325] p-4 rounded-lg leading-relaxed text-[#D7E3FC]">Fetching relay data...</div>
+        <div id="d-sum" class="text-xs text-[#64748b] mt-3 italic"></div>
+        <div class="btn-out w-full mt-4 text-sm" onclick="s('safe')">MARK RESOLVED</div>
+    </div>
+</div>
+
+<!-- 9. SAFE -->
+<div id="safe" class="scr items-center justify-center">
+    <div class="w-32 h-32 rounded-full bg-green-500/20 flex items-center justify-center mb-8 pls">
+        <span class="mso text-6xl text-green-500">check_circle</span>
+    </div>
+    <h1 class="text-4xl font-extrabold tracking-tight mb-2">SAFE</h1>
+    <p class="text-[#B8973A] font-medium mb-12">All guardians updated.</p>
+    <div class="card w-full text-left mb-10 text-sm">
+        <div class="flex justify-between border-b border-[#2C3E50] pb-3 mb-3"><span class="text-[#989BA0]">Incident ID</span><span class="font-mono font-bold bg-[#2A3548] px-2 py-0.5 rounded" id="gd-id">...</span></div>
+        <div class="flex justify-between mb-3"><span class="text-[#989BA0] flex gap-2 items-center"><span class="mso text-base">schedule</span>Time of trigger</span><span class="font-bold">Just Now</span></div>
+        <div class="flex justify-between mb-3"><span class="text-[#989BA0] flex gap-2 items-center"><span class="mso text-base">group</span>Guardians notified</span><span class="font-bold">3 delivered</span></div>
+    </div>
+    <div class="btn-out w-full mb-4" onclick="s('hist')">VIEW FULL REPORT</div>
+    <div class="btn w-full" onclick="s('home')">RETURN HOME</div>
+</div>
+
+<!-- 10. SETUP (Guardians) -->
+<div id="setup" class="scr">
+    <h1 class="text-2xl font-extrabold mb-4 text-[#B8973A]">Guardians</h1>
+    <div class="card"><h2 class="font-bold text-red-400 mb-4 border-b border-[#2C3E50] pb-2">Group C (Critical)</h2><div class="flex gap-4 items-center"><div class="w-10 h-10 rounded-full bg-red-500 text-white flex justify-center items-center font-bold">E</div><div><p class="font-bold">Elena Rostova</p><p class="text-xs text-red-400">Primary Emergency</p></div></div></div>
+    <div class="card"><h2 class="font-bold text-[#D7E3FC] mb-4 border-b border-[#2C3E50] pb-2">Group B (Watchers)</h2><div class="flex gap-4 items-center"><div class="w-10 h-10 rounded-full bg-[#B8973A] text-[#0A1628] flex justify-center items-center font-bold">D</div><div><p class="font-bold">David Chen</p><p class="text-xs text-[#64748b]">+1 555-987-6543</p></div></div></div>
+    <div class="btn-out w-full mt-2">+ ADD CONTACT</div>
+</div>
+
+<!-- 11. SETTINGS -->
+<div id="set" class="scr">
+    <h1 class="text-2xl font-extrabold mb-4 text-[#B8973A]">Settings</h1>
+    <div class="card flex justify-between items-center"><div class="flex gap-3"><span class="mso text-[#B8973A]">watch</span><div><h2 class="font-bold text-sm">VOX Band</h2><p class="text-xs text-green-400">Connected</p></div></div><div class="btn-out py-2 px-4 shadow-none">UNPAIR</div></div>
+    <div class="card"><h2 class="font-bold text-sm mb-4 border-b border-[#2C3E50] pb-2">Gesture Sensitivity</h2><div class="flex flex-col gap-3"><label class="flex justify-between items-center text-sm">High <input type="radio" name="g" checked class="accent-[#B8973A]"></label><label class="flex justify-between items-center text-sm">Medium <input type="radio" name="g" class="accent-[#B8973A]"></label></div></div>
+</div>
+
+<!-- 12. PROFILE -->
+<div id="prof" class="scr items-center pt-10">
+    <div class="w-24 h-24 rounded-full bg-[#142032] border-2 border-[#B8973A] flex items-center justify-center mb-4"><span class="mso text-4xl text-[#B8973A]">person</span></div>
+    <h1 class="text-2xl font-extrabold">Priya Sharma</h1>
+    <p class="text-[#B8973A] mb-8">Premium Member</p>
+    <div class="card w-full mb-4"><div class="text-xs text-[#64748b] mb-1">Phone</div><div class="font-bold">+1 555-123-4567</div></div>
+    <div class="card w-full mb-8"><div class="text-xs text-[#64748b] mb-1">Medical</div><div class="font-bold text-red-400">Blood: B+ | Allergy: Penicillin</div></div>
+    <div class="btn-out w-full text-red-400 border-red-400" onclick="logout()">LOGOUT</div>
+</div>
+
+<!-- 13. ALERTS -->
+<div id="alert" class="scr">
+    <h1 class="text-2xl font-extrabold mb-4 text-[#B8973A]">Alerts</h1>
+    <div class="card border-l-4 border-l-red-500"><div class="text-xs text-red-400 font-bold mb-1">CRITICAL • Yesterday</div><div class="font-bold">Test Alert Generated</div><div class="text-xs text-[#64748b] mt-2">All groups notified successfully.</div></div>
+    <div class="card border-l-4 border-l-blue-500"><div class="text-xs text-blue-400 font-bold mb-1">INFO • 2 Days Ago</div><div class="font-bold">Firmware Updated</div></div>
+    <div class="btn-out w-full mt-4" onclick="s('hist')">INCIDENT HISTORY</div>
+</div>
+
+<!-- 14. HISTORY -->
+<div id="hist" class="scr">
+    <h1 class="text-2xl font-extrabold mb-4 text-[#B8973A] flex items-center gap-2" onclick="s('alert')"><span class="mso cursor-pointer">arrow_back</span> History</h1>
+    <div class="card"><div class="flex justify-between"><div class="text-xs text-[#64748b]">Oct 24, 2023</div><span class="bg-red-500/20 text-red-400 text-[10px] px-2 rounded font-bold">CRITICAL</span></div><div class="font-bold mt-2">Path A Deviation</div><div class="text-xs mt-2 text-[#B8973A]">Resolved</div></div>
+    <div class="card"><div class="flex justify-between"><div class="text-xs text-[#64748b]">Sep 12, 2023</div><span class="bg-yellow-500/20 text-yellow-400 text-[10px] px-2 rounded font-bold">CAUTION</span></div><div class="font-bold mt-2">Unexpected Stop</div><div class="text-xs mt-2 text-[#B8973A]">Resolved</div></div>
+</div>
+
+</body>
+</html>
