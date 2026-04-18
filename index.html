@@ -73,16 +73,21 @@ async function api() {
 }
 
 async function signIn() {
-    let inp = document.querySelectorAll('#login .inpt');
-    let { data, error } = await sb.auth.signInWithPassword({ email: inp[0].value, password: inp[1].value });
+    let email = document.getElementById('l-email').value;
+    let pass = document.getElementById('l-pass').value;
+    let { data, error } = await sb.auth.signInWithPassword({ email: email, password: pass });
     if(!error) s('home'); else alert(error.message);
 }
 
 async function register() {
-    let inp = document.querySelectorAll('#reg .inpt');
-    let { data, error } = await sb.auth.signUp({ email: inp[2].value, password: inp[3].value });
+    const name = document.getElementById('r-name').value;
+    const phone = document.getElementById('r-phone').value;
+    const email = document.getElementById('r-email').value;
+    const pass = document.getElementById('r-pass').value;
+    if(!email || !pass) { alert('Email and password required'); return; }
+    let { data, error } = await sb.auth.signUp({ email, password: pass });
     if(!error && data.user) {
-        await sb.from('profiles').insert([{ id: data.user.id, full_name: inp[0].value, phone: inp[1].value }]);
+        await sb.from('profiles').insert([{ id: data.user.id, full_name: name, phone }]);
         s('priv');
     } else if(error) {
         alert(error.message);
@@ -161,8 +166,8 @@ window.onload = () => {
         <h1 class="text-4xl font-extrabold text-[#B8973A] mt-4 tracking-widest">VOX SHIELD</h1>
         <p class="text-[#E7C361] italic text-sm mt-3">When You Can't Scream, It Speaks for You</p>
     </div>
-    <div class="relative mb-6"><span class="mso absolute bottom-3 left-0 text-[#64748b]">mail</span><input class="inpt" placeholder="Email Address"></div>
-    <div class="relative mb-10"><span class="mso absolute bottom-3 left-0 text-[#64748b]">lock</span><input class="inpt" type="password" placeholder="Password"></div>
+    <div class="relative mb-6"><span class="mso absolute bottom-3 left-0 text-[#64748b]">mail</span><input id="l-email" class="inpt" placeholder="Email Address"></div>
+    <div class="relative mb-10"><span class="mso absolute bottom-3 left-0 text-[#64748b]">lock</span><input id="l-pass" class="inpt" type="password" placeholder="Password"></div>
     <div class="btn flex justify-center items-center gap-2" onclick="signIn()">Sign In <span class="mso">login</span></div>
     <p class="text-center mt-8 text-sm text-[#64748b]">New? <span class="text-[#B8973A] font-bold" onclick="s('reg')">Register</span></p>
 </div>
@@ -170,10 +175,10 @@ window.onload = () => {
 <!-- 2. REGISTER -->
 <div id="reg" class="scr" style="padding-top:20px; justify-content:center;">
     <h1 class="text-3xl font-extrabold mb-8 tracking-wider">REGISTER</h1>
-    <div class="relative mb-6"><span class="mso absolute bottom-3 left-0 text-[#64748b]">person</span><input class="inpt" placeholder="Full Name"></div>
-    <div class="relative mb-6"><span class="mso absolute bottom-3 left-0 text-[#64748b]">phone_iphone</span><input class="inpt" placeholder="Phone"></div>
-    <div class="relative mb-6"><span class="mso absolute bottom-3 left-0 text-[#64748b]">mail</span><input class="inpt" placeholder="Email"></div>
-    <div class="relative mb-10"><span class="mso absolute bottom-3 left-0 text-[#64748b]">lock</span><input class="inpt" type="password" placeholder="Password"></div>
+    <div class="relative mb-6"><span class="mso absolute bottom-3 left-0 text-[#64748b]">person</span><input id="r-name" class="inpt" placeholder="Full Name"></div>
+    <div class="relative mb-6"><span class="mso absolute bottom-3 left-0 text-[#64748b]">phone_iphone</span><input id="r-phone" class="inpt" placeholder="Phone"></div>
+    <div class="relative mb-6"><span class="mso absolute bottom-3 left-0 text-[#64748b]">mail</span><input id="r-email" class="inpt" placeholder="Email"></div>
+    <div class="relative mb-10"><span class="mso absolute bottom-3 left-0 text-[#64748b]">lock</span><input id="r-pass" class="inpt" type="password" placeholder="Password"></div>
     <div class="btn" onclick="register()">Create Account</div>
 </div>
 
